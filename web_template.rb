@@ -22,6 +22,7 @@ gem 'rails_admin'
 # bootstrap
 gem 'bootstrap-sass', '~> 3'
 gem 'rails-footnotes' # https://github.com/josevalim/rails-footnotes
+gem 'pg'
 
 gem_group :development do
   # Rspec for tests (https://github.com/rspec/rspec-rails)
@@ -62,7 +63,6 @@ end
 gem_group :production do
   # For Rails 4 deployment on Heroku
   gem 'rails_12factor'
-  gem 'pg'
 end
 
 run 'bundle install'
@@ -105,13 +105,6 @@ run 'echo >> app/assets/stylesheets/application.css.scss'
 run "echo '@import \"bootstrap-sprockets\";' >>  app/assets/stylesheets/application.css.scss"
 run "echo '@import \"bootstrap\";' >>  app/assets/stylesheets/application.css.scss"
 
-insert_into_file 'config/application.rb', after: "require 'rails/all'\n" do
-  <<-RUBY
-require "active_record/railtie"
-require "action_controller/railtie"
-  RUBY
-end
-
 application do
   <<-RUBY
     config.generators do |g|
@@ -136,38 +129,42 @@ create_file 'app/views/layouts/_navigation_links.html.haml' do
 %li= link_to 'admin', '/admin' # authirized ???
 EOF
 end
+
+
 # Database
 
-run 'rm config/database.yml'
+inside 'config' do
+  remove_file 'database.yml'
+  create_file 'database.yml' do <<-EOF
+default: &default
+  adapter: postgresql
+  encoding: unicode
+  host: db
+  port: 5432
+  pool: 5
+  timeout: 5000
+  user: postgres
 
-create_file 'config/database.yml' do
-  <<-EOF
- default: &default
-   adapter: sqlite3
-   pool: 5
-   timeout: 5000
+development:
+  <<: *default
+  database: #{app_name}_development
+  host: localhost
 
- development:
-   <<: *default
-   database: db/development.sqlite3
+# Warning: The database defined as "test" will be erased and
+# re-generated from your development database when you run "rake".
+# Do not set this db to the same as development or production.
+test:
+  <<: *default
+  database: #{app_name}_test
+  host: localhost
 
- # Warning: The database defined as "test" will be erased and
- # re-generated from your development database when you run "rake".
- # Do not set this db to the same as development or production.
- test:
-   <<: *default
-   database: db/test.sqlite3
+production:
+  <<: *default
+  database: #{app_name}_production
 
- production:
-   <<: *default
-   adapter: postgresql
-   encoding: unicode
-   host: db
-   database: #{app_name}_production
-   username: postgres
 EOF
 end
-
+end
 run 'cp config/database.yml config/database.yml.example'
 
 rake 'db:create'
