@@ -265,6 +265,11 @@ valuable text here
 
 ## Docker
 
+### start docker environment
+
+    docker-machine start default
+    eval "$(docker-machine env default)"
+
 ### build the containers
 
     docker-compose build
@@ -276,10 +281,11 @@ valuable text here
 
 #### useful commands
 
-    docker-compose run web rake db:create    # Create DB if needed
-    docker-compose run web rake db:migrate   # migration
-    docker-compose run web rails c           # rails console
-    docker-compose run web tail -f log/*.log # show logs
+    docker-compose run web rake db:create                        # Create DB if needed
+    docker-compose run web rake db:migrate                       # migration
+    docker-compose run web rails c                               # rails console
+    docker-compose run web tail -f log/*.log                     # show logs
+    docker-compose run -e "RAILS_ENV=test" web bundle exec rspec # run specs
 
 ### connect to a running container
 
