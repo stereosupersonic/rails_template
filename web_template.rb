@@ -32,7 +32,7 @@ gem_group :development do
   gem 'rails_layout'      # https://github.com/RailsApps/rails_layout => rails generate layout:install bootstrap3
   gem 'rails_apps_pages'  # https://github.com/RailsApps/rails_apps_pages  =>  rails generate pages:home -f
 
-  gem 'bootstrap-generators', '~> 3.2.0'
+  gem 'bootstrap-generators', '~> 3'
   gem 'annotate',          git: 'git://github.com/ctran/annotate_models.git'
   gem 'g',                 git: 'https://github.com/stereosupersonic/g'
   gem 'quiet_assets' # Quiet assets turn off rails assets log.
@@ -47,12 +47,12 @@ gem_group :development do
 end
 
 gem_group :test do
-  gem 'simplecov', require: false
+  gem 'simplecov',      require: false
   gem 'simplecov-rcov', require: false
   gem 'rspec-rails'
   # Capybara for integration testing (https://github.com/jnicklas/capybara)
   gem 'capybara'
-  #gem 'capybara-webkit'
+  # gem 'capybara-webkit'
   gem 'launchy'
   # FactoryGirl instead of Rails fixtures (https://github.com/thoughtbot/factory_girl)
   gem 'factory_girl_rails'
@@ -74,7 +74,6 @@ run 'bundle exec guard init rspec'
 # Initialize CanCan
 # ==================================================
 run 'rails g cancan:ability'
-
 
 # Initialize simple_form
 # ==================================================
@@ -130,17 +129,19 @@ application do
 end
 
 # navigation
-run "rm app/views/layouts/_navigation_links.html.erb"
+run 'rm app/views/layouts/_navigation_links.html.erb'
 
-create_file "app/views/layouts/_navigation_links.html.haml" do <<-EOF
+create_file 'app/views/layouts/_navigation_links.html.haml' do
+  <<-EOF
 %li= link_to 'admin', '/admin' # authirized ???
 EOF
-
+end
 # Database
 
-run "rm config/database.yml"
+run 'rm config/database.yml'
 
-create_file 'config/database.yml' do <<-EOF
+create_file 'config/database.yml' do
+  <<-EOF
  default: &default
    adapter: sqlite3
    pool: 5
@@ -167,9 +168,9 @@ create_file 'config/database.yml' do <<-EOF
 EOF
 end
 
-run "cp config/database.yml config/database.yml.example"
+run 'cp config/database.yml config/database.yml.example'
 
-rake "db:create"
+rake 'db:create'
 
 # Ignore rails doc files, Vim/Emacs swap files, .DS_Store, and more
 # ===================================================
@@ -190,7 +191,8 @@ doc/
 EOF"
 
 # Docker
-create_file 'Dockerfile' do <<-EOF
+create_file 'Dockerfile' do
+  <<-EOF
 FROM ruby:2.2.2
 
 RUN apt-get update -yqq && apt-get install -y build-essential
@@ -231,7 +233,8 @@ CMD ["rails", "server", "-b", "0.0.0.0"]
 EOF
 end
 
-create_file 'docker-compose.yml' do <<-EOF
+create_file 'docker-compose.yml' do
+  <<-EOF
 web:
   build: .
   volumes:
@@ -252,9 +255,10 @@ db:
 EOF
 end
 
-run "rm README.*"
+run 'rm README.*'
 
-create_file 'README.md' do <<-EOF
+create_file 'README.md' do
+  <<-EOF
 # #{app_name}
 
 Please update the description here and add some
@@ -298,7 +302,7 @@ git commit: %( -m 'Initial commit' )
 
 if yes?('Initialize GitHub repository?')
   git_uri = `git config remote.origin.url`.strip
-  unless git_uri.size == 0
+  if !git_uri.size == 0
     say 'Repository already exists:'
     say "#{git_uri}"
   else
