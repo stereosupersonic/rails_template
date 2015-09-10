@@ -5,4 +5,4 @@ Rails Application Template
 A `Dockerfile` and `docker-compose.yml` are included in the generated app.
 
 ## How to Use
-    rails new service_name -m https://github.com/stereosupersonic/rails_template/blob/master/web_template.rb
+    rails new service_name -m https://raw.githubusercontent.com/stereosupersonic/rails_template/master/web_template.rb
