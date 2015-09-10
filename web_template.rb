@@ -38,12 +38,11 @@ gem_group :development do
   gem 'quiet_assets' # Quiet assets turn off rails assets log.
   gem 'binding_of_caller' # is needed for better_errors
   gem 'better_errors' # https://github.com/charliesome/better_errors
-
+  # pry
   gem 'pry-rails'
   gem 'pry-rescue'
   gem 'pry-stack_explorer'
   gem 'pry-byebug'
-
   gem 'web-console'
 end
 
@@ -76,6 +75,10 @@ run 'bundle exec guard init rspec'
 # ==================================================
 run 'rails g cancan:ability'
 
+
+# Initialize simple_form
+# ==================================================
+run 'rails generate simple_form:install'
 # bootstrap
 
 run ' rails g bootstrap:install -f --template-engine=haml'
@@ -88,10 +91,12 @@ run ' rails g pages:home -f'
 run 'rails g rails_admin:install'
 # rails_footnotes
 run 'rails generate rails_footnotes:install'
+
 # Clean up Assets
 # ==================================================
 # Use SASS extension for application.css
 run 'mv app/assets/stylesheets/application.css app/assets/stylesheets/application.css.scss'
+
 # Remove the require_tree directives from the SASS and JavaScript files.
 # It's better design to import or require things manually.
 run "sed -i '' /require_tree/d app/assets/javascripts/application.js"
@@ -124,11 +129,18 @@ application do
   RUBY
 end
 
+# navigation
+run "rm app/views/layouts/_navigation_links.html.erb"
+
+create_file "app/views/layouts/_navigation_links.html.haml" do <<-EOF
+%li= link_to 'admin', '/admin' # authirized ???
+EOF
+
 # Database
 
 run "rm config/database.yml"
 
-create_file 'config/database.ym' do <<-EOF
+create_file 'config/database.yml' do <<-EOF
  default: &default
    adapter: sqlite3
    pool: 5
@@ -178,7 +190,6 @@ doc/
 EOF"
 
 # Docker
-
 create_file 'Dockerfile' do <<-EOF
 FROM ruby:2.2.2
 
@@ -206,7 +217,7 @@ RUN mkdir /app
 WORKDIR /tmp
 COPY Gemfile Gemfile
 ADD Gemfile.lock Gemfile.lock
-RUN bundle install --deploy
+RUN bundle install
 
 RUN echo 'Doing something...'
 
@@ -215,7 +226,7 @@ WORKDIR /app
 
 # Run the app in production mode by default:
 ENV RACK_ENV=production RAILS_ENV=production
-
+RUN RAILS_ENV=production bundle exec rake assets:precompile --trace
 CMD ["rails", "server", "-b", "0.0.0.0"]
 EOF
 end
@@ -227,14 +238,17 @@ web:
     - .:/app
   links:
     - db
+  environment:
+    SECRET_KEY_BASE: abcdefg
+    RAILS_ENV: production
   ports:
-    - "3000:3000"
+    - "80:3000" # run on port 80
 db:
   image: postgres
   volumes:
    - .:/app # We're mounting this folder so we can backup/restore database dumps from our app folder.
   ports:
-    - "5432:5432"
+    - "5432"
 EOF
 end
 
@@ -243,14 +257,35 @@ run "rm README.*"
 create_file 'README.md' do <<-EOF
 # #{app_name}
 
+Please update the description here and add some
+valuable text here
 
 ## Docker
 
-## build
-    docker-compose build
+### build the containers
 
-## Run #{app_name} app in a container
-    docker-compose up
+> docker-compose build
+
+### Run #{app_name} app in a container
+
+> docker-compose up
+
+#### Create DB if needed
+
+> docker-compose run web rake db:create
+
+### migration
+
+> docker-compose run web rake db:migrate
+
+### connect to a running container
+
+> echo $DOCKER_HOST # get the ip and run on port 80 on a browser
+
+### run tests
+### some useful command
+
+
 
 EOF
 end
