@@ -6,7 +6,7 @@
 
 puts "********* #{app_name} ******"
 # For encrypted password
-gem 'bcrypt-ruby'
+gem 'bcrypt'
 
 # For authorization (https://github.com/ryanb/cancan)
 gem 'cancan'
@@ -227,8 +227,7 @@ ADD . /app
 WORKDIR /app
 
 # Run the app in production mode by default:
-ENV RACK_ENV=production RAILS_ENV=production
-RUN RAILS_ENV=production bundle exec rake assets:precompile --trace
+ENV RACK_ENV=production RAILS_ENV=
 CMD ["rails", "server", "-b", "0.0.0.0"]
 EOF
 end
@@ -268,29 +267,28 @@ valuable text here
 
 ### build the containers
 
-> docker-compose build
+    docker-compose build
 
-### Run #{app_name} app in a container
+### Run the app in a container
 
-> docker-compose up
+    docker-compose run web rake assets:precompile # assets must be compiled
+    docker-compose up
 
-#### Create DB if needed
+#### useful commands
 
-> docker-compose run web rake db:create
-
-### migration
-
-> docker-compose run web rake db:migrate
+    docker-compose run web rake db:create    # Create DB if needed
+    docker-compose run web rake db:migrate   # migration
+    docker-compose run web rails c           # rails console
+    docker-compose run web tail -f log/*.log # show logs
 
 ### connect to a running container
 
-> echo $DOCKER_HOST # get the ip and run on port 80 on a browser
+    echo $DOCKER_HOST # get the ip and run on port 80 on a browser
+    #or
+    docker-machine ip default
 
 ### run tests
-### some useful command
-
-
-
+    # TODO
 EOF
 end
 
