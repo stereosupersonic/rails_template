@@ -1,6 +1,9 @@
 # Guide http://guides.rubyonrails.org/rails_application_templates.html
 # example https://github.com/Skookum/uu-rails-api-template/blob/master/rails-api-template.rb
 
+# generate(:controller, "pages", "welcome", " --no-helper --no-assets --no-controller-specs --no-view-specs")
+# route "root to: 'pages#welcome'"
+
 # Gems
 # ==================================================
 
@@ -31,7 +34,6 @@ gem_group :development do
   gem 'guard-rspec'
 
   gem 'rails_layout'      # https://github.com/RailsApps/rails_layout => rails generate layout:install bootstrap3
-  gem 'rails_apps_pages'  # https://github.com/RailsApps/rails_apps_pages  =>  rails generate pages:home -f
 
   gem 'bootstrap-generators', '~> 3'
   gem 'annotate',          git: 'git://github.com/ctran/annotate_models.git'
@@ -84,7 +86,10 @@ run ' rails g bootstrap:install -f --template-engine=haml'
 run ' rm app/assets/javascripts/application.js'
 run ' rm app/views/layouts/application.html.haml'
 run ' rails g layout:install bootstrap3'
-run ' rails g pages:home -f'
+
+generate(:controller, "pages", "welcome", " --no-helper --no-assets --no-controller-specs --no-view-specs")
+route "root to: 'pages#welcome'"
+
 
 # rails admin
 run 'rails g rails_admin:install'
@@ -168,6 +173,7 @@ end
 run 'cp config/database.yml config/database.yml.example'
 
 rake 'db:create'
+rake 'db:migrate'
 
 # Ignore rails doc files, Vim/Emacs swap files, .DS_Store, and more
 # ===================================================
@@ -212,20 +218,12 @@ RUN apt-get install -y vim
 RUN apt-get install -y nodejs
 
 RUN mkdir /app
-
-WORKDIR /tmp
-COPY Gemfile Gemfile
-ADD Gemfile.lock Gemfile.lock
+WORKDIR /app
+COPY Gemfile /app/
+COPY Gemfile.lock /app/
 RUN bundle install
 
-RUN echo 'Doing something...'
-
-ADD . /app
-WORKDIR /app
-
-# Run the app in production mode by default:
-ENV RACK_ENV=production RAILS_ENV=
-CMD ["rails", "server", "-b", "0.0.0.0"]
+COPY . /app/
 EOF
 end
 
@@ -233,8 +231,10 @@ create_file 'docker-compose.yml' do
   <<-EOF
 web:
   build: .
+  command: rails s -b 0.0.0.0
   volumes:
     - .:/app
+  stdin_open: true
   links:
     - db
   environment:
@@ -299,21 +299,22 @@ run "spring stop"
 generate "rspec:install"
 run "guard init"
 
-# Git: Initialize
-# ==================================================
-git :init
-git add: '.'
-git commit: %( -m 'Initial commit' )
-
-if yes?('Initialize GitHub repository?')
-  git_uri = `git config remote.origin.url`.strip
-  if !git_uri.size == 0
-    say 'Repository already exists:'
-    say "#{git_uri}"
-  else
-    username = ask 'What is your GitHub username?'
-    run "curl -u #{username} -d '{\"name\":\"#{app_name}\"}' https://api.github.com/user/repos"
-    git remote: %( add origin git@github.com:#{username}/#{app_name}.git )
-    git push: %( origin master )
-  end
-end
+## Git: Initialize
+## ==================================================
+#git :init
+#git add: '.'
+#git commit: %( -m 'Initial commit' )
+#
+#if yes?('Initialize GitHub repository?')
+#  git_uri = `git config remote.origin.url`.strip
+#  if !git_uri.size == 0
+#    say 'Repository already exists:'
+#    say "#{git_uri}"
+#  else
+#    username = ask 'What is your GitHub username?'
+#    run "curl -u #{username} -d '{\"name\":\"#{app_name}\"}' https://api.github.com/user/repos"
+#    git remote: %( add origin git@github.com:#{username}/#{app_name}.git )
+#    git push: %( origin master )
+#  end
+#end
+#
